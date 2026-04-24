@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
@@ -118,20 +119,43 @@ const ADMIN_LINKS = [
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
     return pathname.startsWith(href);
   };
 
+  const close = () => setOpen(false);
+
   return (
     <div className="flex min-h-screen bg-slate-100">
-      {/* Sidebar */}
-      <aside className="w-64 shrink-0 border-r border-slate-200 bg-white">
+
+      {/* Mobile overlay — only renders when drawer is open */}
+      {open && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar
+          Mobile: fixed drawer, slides in/out via translate
+          Desktop (md+): static flex item, always visible */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col
+          border-r border-slate-200 bg-white
+          transition-transform duration-200 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          md:relative md:z-auto md:translate-x-0
+        `}
+      >
         <div className="sticky top-0 flex h-screen flex-col">
           {/* Brand */}
           <div className="border-b border-slate-100 px-5 py-5">
-            <Link href="/admin" className="flex items-center gap-2">
+            <Link href="/admin" onClick={close} className="flex items-center gap-2">
               <span className="text-lg font-black text-slate-800 tracking-tight">
                 Mappele<span className="text-amber-500">.</span>
               </span>
@@ -147,6 +171,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={close}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                     active
                       ? "bg-amber-50 text-amber-700"
@@ -176,10 +201,32 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-5xl p-6">{children}</div>
-      </main>
+      {/* Right side: topbar (mobile only) + main content */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top bar with hamburger */}
+        <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 transition-colors"
+            aria-label="Open menu"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <span className="text-sm font-black text-slate-800 tracking-tight">
+            Mappele<span className="text-amber-500">.</span>
+            <span className="ml-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider">Admin</span>
+          </span>
+        </div>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          <div className="mx-auto max-w-5xl p-4 md:p-6">{children}</div>
+        </main>
+      </div>
+
     </div>
   );
 }
