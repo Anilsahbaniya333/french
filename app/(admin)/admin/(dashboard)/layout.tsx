@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import LogoImage from "@/components/LogoImage";
 import { usePathname } from "next/navigation";
 import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
 
@@ -230,7 +230,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
           {/* Brand */}
           <div className="border-b border-slate-100 px-5 py-4">
             <Link href="/admin" onClick={close} className="flex items-center gap-3">
-              <Image src="/logo.png" alt="Mappele Academy" width={40} height={40} className="object-contain shrink-0" />
+              <LogoImage size={40} imgClassName="object-contain h-9 w-auto shrink-0" />
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Admin Panel</p>
             </Link>
           </div>

@@ -273,7 +273,7 @@ export default async function Home() {
           </div>
 
           {/* Feature chips */}
-          <div className="animate-fade-up-delay-3 mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 max-w-2xl mx-auto">
+          <div className="animate-fade-up-delay-3 mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 max-w-3xl mx-auto">
             {[
               { label: "Live online classes" },
               { label: "All sessions recorded" },
@@ -302,7 +302,7 @@ export default async function Home() {
           LEVEL CARDS
       ════════════════════════════════════════════════ */}
       <section className="py-16 sm:py-24" id="levels">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">CEFR Framework</p>
             <h2 className="text-3xl font-black text-slate-800 sm:text-4xl">Choose Your Level</h2>
@@ -386,7 +386,7 @@ export default async function Home() {
           STUDENT LEARNING JOURNEY
       ════════════════════════════════════════════════ */}
       <section className="bg-slate-900 py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-3">How It Works</p>
             <h2 className="text-3xl font-black text-white sm:text-4xl">Your Learning Journey</h2>
@@ -433,7 +433,7 @@ export default async function Home() {
       ════════════════════════════════════════════════ */}
       {programs.length > 0 && (
         <section className="bg-white py-16 sm:py-24" id="programs">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Structured Offerings</p>
               <h2 className="text-3xl font-black text-slate-800 sm:text-4xl">Our Programs</h2>
@@ -487,7 +487,7 @@ export default async function Home() {
           WHY CHOOSE US
       ════════════════════════════════════════════════ */}
       <section className="bg-slate-50 py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Our Strengths</p>
             <h2 className="text-3xl font-black text-slate-800 sm:text-4xl">Why Students Choose Us</h2>
@@ -516,14 +516,14 @@ export default async function Home() {
           METHODOLOGY
       ════════════════════════════════════════════════ */}
       <section className="py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800">
             <div className="hero-pattern absolute inset-0 opacity-[0.04]" aria-hidden="true" />
             <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" aria-hidden="true" />
             <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" aria-hidden="true" />
 
             <div className="relative flex flex-col gap-10 px-8 py-12 sm:px-12 sm:py-16 lg:flex-row lg:items-center lg:gap-16">
-              {/* Left: text */}
+              {/* text column */}
               <div className="flex-1">
                 <p className="text-xs font-bold uppercase tracking-widest text-amber-400/80 mb-4">Our Approach</p>
                 <h2 className="text-2xl font-black text-white sm:text-3xl lg:text-4xl leading-tight">
@@ -545,7 +545,7 @@ export default async function Home() {
                 </div>
               </div>
 
-              {/* Right: chips grid */}
+              {/* highlights grid */}
               <div className="flex-shrink-0 lg:w-72">
                 <div className="grid grid-cols-1 gap-3">
                   {METHODOLOGY_PREVIEW.highlights.map((h) => (
@@ -573,7 +573,7 @@ export default async function Home() {
       ════════════════════════════════════════════════ */}
       {(team.tutors.length > 0 || team.staff.length > 0) && (
         <section className="bg-white py-16 sm:py-24" id="team">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Meet the Team</p>
               <h2 className="text-3xl font-black text-slate-800 sm:text-4xl">Our Tutors &amp; Staff</h2>
@@ -676,7 +676,7 @@ export default async function Home() {
       ════════════════════════════════════════════════ */}
       {jobs.length > 0 && (
         <section className="py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-3xl bg-slate-900 overflow-hidden">
               <div className="px-8 py-10 sm:px-12 sm:py-14">
                 <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-16">
