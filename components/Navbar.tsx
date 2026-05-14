@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -26,14 +27,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/90 backdrop-blur-md shadow-sm">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1 group">
-          <span className="text-xl font-black tracking-tight text-slate-800 group-hover:text-amber-600 transition-colors">
-            Mappele
-          </span>
-          <span className="text-xl font-black text-amber-500 group-hover:text-amber-600 transition-colors">.</span>
-          <span className="text-xl font-black tracking-tight text-slate-800 group-hover:text-amber-600 transition-colors">
-            French
-          </span>
+        <Link href="/" className="flex items-center">
+          <Image src="/logo.png" alt="Mappele Academy" width={56} height={56} className="object-contain" priority />
         </Link>
 
         {/* Desktop navigation */}

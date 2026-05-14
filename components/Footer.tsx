@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 
 const FOOTER_LINKS = [
@@ -60,10 +61,8 @@ export default async function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3 lg:grid-cols-4">
           {/* Brand column */}
           <div className="lg:col-span-2">
-            <Link href="/" className="inline-flex items-center">
-              <span className="text-xl font-black tracking-tight text-white">Mappele</span>
-              <span className="text-xl font-black text-amber-400">.</span>
-              <span className="text-xl font-black tracking-tight text-white">French</span>
+            <Link href="/" className="inline-flex items-center rounded-2xl bg-white p-2 hover:opacity-90 transition-opacity">
+              <Image src="/logo.png" alt="Mappele Academy" width={72} height={72} className="object-contain" />
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-slate-400 max-w-xs">
               Learn French with confidence. Structured courses from A1 to B2, built for real progress.
