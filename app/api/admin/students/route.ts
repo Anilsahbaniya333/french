@@ -61,44 +61,74 @@ export async function POST(req: Request) {
   if (level_code) insertData.level_code = level_code;
   if (group_uuid) insertData.group_uuid = group_uuid;
 
-  // Step 1: INSERT only — no .select() to avoid Supabase "returning" quirks
-  let { error: insertError } = await supabase
+  // INSERT — only request `id` back to avoid schema-cache issues with optional columns
+  let insertResult = await supabase
     .from("students")
-    .insert(insertData);
-
-  // Optional columns (level_code / group_uuid) may not exist yet — retry without them
-  if (
-    insertError?.message?.includes("level_code") ||
-    insertError?.message?.includes("group_uuid") ||
-    insertError?.message?.includes("schema cache")
-  ) {
-    const { level_code: _lc, group_uuid: _gu, ...rowMinimal } = insertData;
-    const { error: fallbackErr } = await supabase
-      .from("students")
-      .insert(rowMinimal);
-    insertError = fallbackErr ?? null;
-  }
-
-  if (insertError) {
-    if (insertError.message.includes("unique") || insertError.message.includes("duplicate")) {
-      return NextResponse.json({ error: "A student with this email already exists" }, { status: 409 });
-    }
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
-  }
-
-  // Step 2: SELECT the newly created student by email
-  const { data, error: selectError } = await supabase
-    .from("students")
-    .select()
-    .eq("email", normalizedEmail)
+    .insert(insertData)
+    .select("id")
     .single();
 
-  if (selectError) {
-    return NextResponse.json({ error: selectError.message }, { status: 500 });
-  }
-  if (!data?.id) {
-    return NextResponse.json({ error: "Student was created but could not be retrieved" }, { status: 500 });
+  // Optional columns (level_code / group_uuid) may not exist yet — retry without them
+  const missingCol =
+    insertResult.error?.message?.includes("level_code") ||
+    insertResult.error?.message?.includes("group_uuid") ||
+    insertResult.error?.message?.includes("schema cache") ||
+    insertResult.error?.code === "42703";
+
+  if (missingCol) {
+    const { level_code: _lc, group_uuid: _gu, ...rowMinimal } = insertData;
+    insertResult = await supabase
+      .from("students")
+      .insert(rowMinimal)
+      .select("id")
+      .single();
   }
 
-  return NextResponse.json({ student: data }, { status: 201 });
+  if (insertResult.error) {
+    const err = insertResult.error;
+    console.error("[POST /api/admin/students] insert error:", { code: err.code, message: err.message, details: err.details, hint: err.hint });
+    const msg = err.message ?? "";
+    if (msg.includes("unique") || msg.includes("duplicate") || err.code === "23505") {
+      return NextResponse.json({ error: "A student with this email already exists" }, { status: 409 });
+    }
+    return NextResponse.json({ error: msg || "Insert failed", code: err.code }, { status: 500 });
+  }
+
+  const newId = insertResult.data?.id as string | undefined;
+  if (!newId) {
+    return NextResponse.json({ error: "Insert returned no ID — check database logs" }, { status: 500 });
+  }
+
+  // Fetch the full student row by its new ID
+  let { data: student, error: fetchError } = await supabase
+    .from("students")
+    .select("id, full_name, email, group_id, group_uuid, level_code, is_active, created_at")
+    .eq("id", newId)
+    .single();
+
+  if (fetchError || !student) {
+    // Fallback: minimal select if optional columns aren't in schema yet
+    const fallback = await supabase
+      .from("students")
+      .select("id, full_name, email, group_id, is_active, created_at")
+      .eq("id", newId)
+      .single();
+    if (fallback.data) {
+      student = { ...fallback.data, group_uuid: null, level_code: null } as any;
+    } else {
+      // Last resort: construct from known insert data
+      student = {
+        id: newId,
+        full_name: (insertData.full_name as string),
+        email: normalizedEmail,
+        group_id: null,
+        group_uuid: null,
+        level_code: null,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      } as any;
+    }
+  }
+
+  return NextResponse.json({ student }, { status: 201 });
 }

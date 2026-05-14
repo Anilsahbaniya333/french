@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Mappele French - Education-focused design system */
+/* Mappele French — design tokens */
 :root {
   --background: #fafbfc;
   --foreground: #1e293b;
@@ -21,4 +21,59 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Keyframes ── */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes shimmer-text {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ── Animation utilities ── */
+
+.animate-fade-up           { animation: fade-up        0.6s ease-out        both; }
+.animate-fade-up-delay-1   { animation: fade-up        0.6s ease-out 0.15s  both; }
+.animate-fade-up-delay-2   { animation: fade-up        0.6s ease-out 0.30s  both; }
+.animate-fade-up-delay-3   { animation: fade-up        0.6s ease-out 0.45s  both; }
+.animate-fade-in           { animation: fade-in        0.5s ease-out        both; }
+.animate-slide-in-right    { animation: slide-in-right 0.7s ease-out 0.2s   both; }
+.animate-float             { animation: float          4s  ease-in-out infinite; }
+
+/* Gradient shimmer text */
+.text-shimmer {
+  background: linear-gradient(90deg, #b45309, #d97706, #f59e0b, #fbbf24, #f59e0b, #d97706, #b45309);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer-text 4s linear infinite;
+}
+
+/* Dot-grid pattern */
+.hero-pattern {
+  background-image: radial-gradient(circle, #f59e0b22 1px, transparent 1px);
+  background-size: 28px 28px;
 }

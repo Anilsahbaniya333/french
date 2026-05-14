@@ -159,8 +159,7 @@ export async function insertRegistration(
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabase) return { success: false, error: "Supabase not configured" };
 
-  const { error } = await supabase.from("student_registrations").insert({
-    full_name: data.fullName,
+  const baseFields = {
     email: data.email,
     phone: data.phone,
     level: data.level,
@@ -170,7 +169,21 @@ export async function insertRegistration(
     goals: data.goals ?? null,
     message: data.message ?? null,
     payment_screenshot_url: data.paymentScreenshotUrl ?? null,
-  });
+  };
+
+  // The table uses 'name' as the NOT NULL column. 'full_name' is an alias added later and may not exist.
+  const { error } = await supabase
+    .from("student_registrations")
+    .insert({ name: data.fullName, full_name: data.fullName, ...baseFields });
+
+  // If full_name column doesn't exist yet (42703 / schema cache), retry with name only
+  if (error?.code === "42703" || error?.message?.includes("full_name") || error?.message?.includes("schema cache")) {
+    const { error: retryError } = await supabase
+      .from("student_registrations")
+      .insert({ name: data.fullName, ...baseFields });
+    if (retryError) return { success: false, error: retryError.message };
+    return { success: true };
+  }
 
   if (error) return { success: false, error: error.message };
   return { success: true };

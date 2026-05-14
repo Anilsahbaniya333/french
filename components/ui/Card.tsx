@@ -17,14 +17,14 @@ export default function Card({
 }: CardProps) {
   const content = (
     <>
-      <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-      {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
+      <h3 className="text-lg font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">{title}</h3>
+      {description && <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{description}</p>}
       {children}
     </>
   );
 
   const baseStyles =
-    "rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md";
+    "group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-amber-200";
 
   if (href) {
     return (

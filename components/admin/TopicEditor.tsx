@@ -186,16 +186,45 @@ export default function TopicEditor({ topicId, topicTitle, levelId, onClose }: T
       .catch(() => {});
   }, [assignment?.id, activeTab]);
 
-  // ── Content save ──
+  // ── Content save (description + notes only — video is saved by Set URL / upload) ──
   const saveContent = async () => {
     setStatus("saving");
     const res = await fetch(`/api/admin/topics/${topicId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description, notes, video_url: videoUrl || null, video_title: videoTitle || null }),
+      body: JSON.stringify({ description, notes }),
     });
     if (res.ok) showStatus("success", "Content saved!");
     else { const j = await res.json().catch(() => ({})); showStatus("error", j.error || "Save failed."); }
+  };
+
+  // ── Set URL — saves video_url immediately to DB ──
+  const handleSetUrl = async () => {
+    const raw = urlInput.trim();
+    if (!raw) return;
+    const normalised = isRecordingLink(raw) ? raw : normalizeVimeoUrl(raw);
+
+    console.log(`[Set URL] clicked | topic=${topicId} video_url=${normalised}`);
+    setStatus("saving");
+
+    const res = await fetch(`/api/admin/topics/${topicId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ video_url: normalised, video_title: null }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    console.log(`[Set URL] DB result | topic=${topicId}`, JSON.stringify(data));
+    console.log(`[Set URL] returned video_url=${data.video_url}`);
+
+    if (res.ok) {
+      setVideoUrl(data.video_url ?? normalised);
+      setVideoTitle(data.video_title ?? "");
+      setUrlInput("");
+      showStatus("success", "Video URL saved!");
+    } else {
+      showStatus("error", data.error || "Failed to save URL.");
+    }
   };
 
   // ── Video upload: browser → API route → Supabase Storage (service role) ──
@@ -481,14 +510,8 @@ export default function TopicEditor({ topicId, topicTitle, levelId, onClose }: T
                       />
                       <button
                         type="button"
-                        disabled={!urlInput.trim()}
-                        onClick={() => {
-                          const raw = urlInput.trim();
-                          // Recording links and YouTube stored as-is; Vimeo normalised to embed form
-                          const normalised = isRecordingLink(raw) ? raw : normalizeVimeoUrl(raw);
-                          setVideoUrl(normalised);
-                          setUrlInput("");
-                        }}
+                        disabled={!urlInput.trim() || status === "saving"}
+                        onClick={handleSetUrl}
                         className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-40"
                       >
                         Set URL

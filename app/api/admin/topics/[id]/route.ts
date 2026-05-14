@@ -37,7 +37,21 @@ export async function PATCH(
   if (body.video_title !== undefined) patch.video_title = body.video_title;
 
   if (!Object.keys(patch).length) return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-  const { error } = await supabase.from("topics").update(patch).eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+
+  console.log(`[topics PATCH] topic=${id} fields=${Object.keys(patch).join(",")} video_url=${patch.video_url ?? "(not set)"}`);
+
+  const { data, error } = await supabase
+    .from("topics")
+    .update(patch)
+    .eq("id", id)
+    .select("id,title,description,notes,video_url,video_title,is_preview,module_id")
+    .single();
+
+  if (error) {
+    console.error(`[topics PATCH] DB error | topic=${id}:`, error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  console.log(`[topics PATCH] saved | topic=${id} video_url=${data.video_url}`);
+  return NextResponse.json(data);
 }

@@ -9,13 +9,14 @@ interface ButtonProps {
   className?: string;
   type?: "button" | "submit" | "reset";
   onClick?: () => void;
+  disabled?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-amber-500 text-white hover:bg-amber-600 shadow-sm",
-  secondary: "bg-slate-700 text-white hover:bg-slate-800",
-  outline: "border-2 border-amber-500 text-amber-600 hover:bg-amber-50",
-  ghost: "text-slate-600 hover:bg-slate-100",
+  primary:   "bg-amber-500 text-white hover:bg-amber-600 shadow-sm hover:shadow-md",
+  secondary: "bg-slate-800 text-white hover:bg-slate-900 shadow-sm hover:shadow-md",
+  outline:   "border-2 border-amber-500 text-amber-600 hover:bg-amber-50 hover:border-amber-600",
+  ghost:     "text-slate-600 hover:bg-slate-100",
 };
 
 export default function Button({
@@ -25,9 +26,10 @@ export default function Button({
   className = "",
   type = "button",
   onClick,
+  disabled,
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50";
+    "inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const combinedClassName = `${baseStyles} ${variantStyles[variant]} ${className}`;
 
@@ -40,7 +42,7 @@ export default function Button({
   }
 
   return (
-    <button type={type} className={combinedClassName} onClick={onClick}>
+    <button type={type} className={combinedClassName} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );
