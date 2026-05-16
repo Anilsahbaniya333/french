@@ -15,34 +15,53 @@ export async function GET() {
   const supabase = createServiceRoleClient();
   if (!supabase) return NextResponse.json({ error: "Database not configured" }, { status: 503 });
 
-  // Get student's level_code
+  // Student details
   const { data: studentRow } = await supabase
     .from("students")
-    .select("level_code")
+    .select("level_code, group_uuid")
     .eq("id", student.id)
     .single();
 
-  const levelCode = studentRow?.level_code;
+  const levelCode = studentRow?.level_code ?? null;
+  const groupUuid = studentRow?.group_uuid ?? null;
 
-  // Get completed lesson IDs for this student
-  const { data: progressRows } = await supabase
-    .from("student_lesson_progress")
-    .select("topic_id, completed_at")
-    .eq("student_id", student.id)
-    .eq("is_completed", true);
+  // Fetch everything in parallel
+  const [lessonProgressRes, submissionsRes, assignmentsRes, checklistItemsRes, checklistProgressRes] =
+    await Promise.all([
+      supabase
+        .from("student_lesson_progress")
+        .select("topic_id")
+        .eq("student_id", student.id)
+        .eq("is_completed", true),
+      supabase
+        .from("assignment_submissions")
+        .select("id, status")
+        .eq("student_email", student.email),
+      supabase
+        .from("assignments")
+        .select("id, target_group_uuids"),
+      supabase
+        .from("learning_checklist_items")
+        .select("id, target_group_uuids")
+        .eq("is_active", true),
+      supabase
+        .from("student_learning_progress")
+        .select("checklist_item_id, is_completed")
+        .eq("student_id", student.id),
+    ]);
 
-  const completedTopicIds = new Set((progressRows ?? []).map((r: any) => r.topic_id));
+  const completedTopicIds = new Set((lessonProgressRes.data ?? []).map((r: any) => r.topic_id));
 
+  // ── Curriculum stats ─────────────────────────────────────────────────────
   let totalTopics = 0;
   let totalModules = 0;
   let completedModules = 0;
   let nextTopic: { id: string; title: string; moduleTitle: string } | null = null;
 
   if (levelCode) {
-    // Get full curriculum to calculate stats
     const { data: level } = await supabase
       .from("levels")
-      .select("id, code, title")
+      .select("id")
       .eq("code", levelCode)
       .single();
 
@@ -54,14 +73,13 @@ export async function GET() {
         .order("sort_order", { ascending: true });
 
       for (const mod of modules ?? []) {
-        const topics = (mod.topics as any[] ?? []).sort((a, b) => a.sort_order - b.sort_order);
+        const topics = ((mod.topics as any[]) ?? []).sort((a, b) => a.sort_order - b.sort_order);
         totalModules++;
         totalTopics += topics.length;
 
         const allDone = topics.length > 0 && topics.every((t: any) => completedTopicIds.has(t.id));
         if (allDone) completedModules++;
 
-        // Find next incomplete topic
         if (!nextTopic) {
           const incomplete = topics.find((t: any) => !completedTopicIds.has(t.id));
           if (incomplete) {
@@ -72,29 +90,64 @@ export async function GET() {
     }
   }
 
-  // Get assignment submission counts
-  const { data: submissions } = await supabase
-    .from("assignment_submissions")
-    .select("id, status, score, feedback")
-    .eq("student_email", student.email);
-
-  const totalSubmissions = submissions?.length ?? 0;
-  const gradedSubmissions = (submissions ?? []).filter(
-    (s: any) => s.status === "graded" || s.status === "reviewed" || s.status === "feedback_sent" || s.status === "completed"
+  // ── Assignment stats ─────────────────────────────────────────────────────
+  const completedTopics = completedTopicIds.size;
+  const totalSubmissions = submissionsRes.data?.length ?? 0;
+  const gradedSubmissions = (submissionsRes.data ?? []).filter((s: any) =>
+    ["graded", "reviewed", "feedback_sent", "completed"].includes(s.status)
   ).length;
 
-  const completedTopics = completedTopicIds.size;
-  const pct = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+  const totalAssignments = groupUuid
+    ? (assignmentsRes.data ?? []).filter(
+        (a: any) =>
+          Array.isArray(a.target_group_uuids) && a.target_group_uuids.includes(groupUuid)
+      ).length
+    : 0;
+
+  // ── Checklist stats ──────────────────────────────────────────────────────
+  const assignedChecklistItems = groupUuid
+    ? (checklistItemsRes.data ?? []).filter(
+        (item: any) =>
+          Array.isArray(item.target_group_uuids) && item.target_group_uuids.includes(groupUuid)
+      )
+    : [];
+
+  const assignedIds = new Set(assignedChecklistItems.map((i: any) => i.id));
+  const checklistTotal = assignedChecklistItems.length;
+  const checklistCompleted = (checklistProgressRes.data ?? []).filter(
+    (p: any) => p.is_completed && assignedIds.has(p.checklist_item_id)
+  ).length;
+
+  // ── Final progress formula ───────────────────────────────────────────────
+  // Course progress = average of 4 components
+  const lessonsPct    = totalTopics      > 0 ? (completedTopics   / totalTopics)      * 100 : 0;
+  const modulesPct    = totalModules     > 0 ? (completedModules  / totalModules)     * 100 : 0;
+  const submittedPct  = totalAssignments > 0 ? Math.min((totalSubmissions / totalAssignments) * 100, 100) : 0;
+  const reviewedPct   = totalSubmissions > 0 ? (gradedSubmissions / totalSubmissions) * 100 : 0;
+
+  const coursePercent     = (lessonsPct + modulesPct + submittedPct + reviewedPct) / 4;
+  const checklistPercent  = checklistTotal > 0 ? (checklistCompleted / checklistTotal) * 100 : 0;
+  const finalPercent      = Math.round(coursePercent * 0.6 + checklistPercent * 0.4);
 
   return NextResponse.json({
     levelCode,
+    // Course breakdown
     totalTopics,
     completedTopics,
     totalModules,
     completedModules,
-    progressPercent: pct,
-    nextTopic,
     totalSubmissions,
     gradedSubmissions,
+    totalAssignments,
+    // Checklist
+    checklistTotal,
+    checklistCompleted,
+    checklistPercent: Math.round(checklistPercent),
+    // Scores
+    coursePercent: Math.round(coursePercent),
+    finalPercent,
+    // Kept for backward compat (dashboard home uses this field)
+    progressPercent: finalPercent,
+    nextTopic,
   });
 }
