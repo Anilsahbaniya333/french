@@ -43,6 +43,149 @@ const BLANK: RForm = {
   special_instructions: "", is_published: true, sort_order: 0,
 };
 
+// ── Stable top-level component — must NOT be defined inside the page function ──
+function FormFields({
+  form,
+  setForm,
+  file,
+  setFile,
+  fileRef,
+  groups,
+}: {
+  form: RForm;
+  setForm: (patch: Partial<RForm>) => void;
+  file: File | null;
+  setFile: (f: File | null) => void;
+  fileRef: React.RefObject<HTMLInputElement | null>;
+  groups: Group[];
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            Title <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm({ title: e.target.value })}
+            placeholder="e.g. A1 Class — Greetings & Introduction"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            Group <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={form.group_id}
+            onChange={(e) => setForm({ group_id: e.target.value })}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+          >
+            <option value="">Select group…</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.group_name}{g.level_code ? ` (${g.level_code.toUpperCase()})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">Class Date</label>
+          <input
+            type="date"
+            value={form.class_date}
+            onChange={(e) => setForm({ class_date: e.target.value })}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">Sort Order</label>
+          <input
+            type="number"
+            value={form.sort_order}
+            onChange={(e) => setForm({ sort_order: parseInt(e.target.value) || 0 })}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1.5">Description</label>
+        <textarea
+          rows={3}
+          value={form.description}
+          onChange={(e) => setForm({ description: e.target.value })}
+          placeholder="What was covered in this class?"
+          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1.5">Video URL</label>
+        <input
+          type="url"
+          value={form.video_url}
+          onChange={(e) => setForm({ video_url: e.target.value })}
+          placeholder="YouTube, Vimeo, OneDrive, SharePoint, Teams, or Google Drive link"
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+        />
+        <p className="mt-1 text-xs text-slate-400">YouTube/Vimeo embed automatically. Drive/OneDrive/Teams shows a Watch button.</p>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+          Attach File
+          <span className="ml-1.5 font-normal text-slate-400">(PDF, DOC, DOCX, PPT, PPTX — max 50 MB)</span>
+        </label>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".pdf,.doc,.docx,.ppt,.pptx"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-1 file:text-xs file:font-bold file:text-amber-700 hover:file:bg-amber-200 focus:outline-none transition"
+        />
+        {file && (
+          <p className="mt-1 text-xs text-green-600 font-medium">
+            Selected: {file.name} ({(file.size / 1024).toFixed(0)} KB)
+          </p>
+        )}
+        {!file && form.file_name && (
+          <p className="mt-1 text-xs text-slate-500">Current: {form.file_name}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-700 mb-1.5">Special Instructions</label>
+        <textarea
+          rows={3}
+          value={form.special_instructions}
+          onChange={(e) => setForm({ special_instructions: e.target.value })}
+          placeholder="Homework, review notes, or reminders for students…"
+          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <label className="relative inline-flex cursor-pointer items-center">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={form.is_published}
+            onChange={(e) => setForm({ is_published: e.target.checked })}
+          />
+          <div className="h-5 w-9 rounded-full bg-slate-200 peer-checked:bg-amber-500 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition-all peer-checked:after:translate-x-4" />
+        </label>
+        <span className="text-sm font-medium text-slate-700">Published (visible to students)</span>
+      </div>
+    </div>
+  );
+}
+
 export default function DailyRecordingsAdminPage() {
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [groups, setGroups]         = useState<Group[]>([]);
@@ -210,144 +353,6 @@ export default function DailyRecordingsAdminPage() {
   const fmtDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
-  const FormFields = ({
-    form,
-    setForm,
-    file,
-    setFile,
-    fileRef,
-  }: {
-    form: RForm;
-    setForm: (patch: Partial<RForm>) => void;
-    file: File | null;
-    setFile: (f: File | null) => void;
-    fileRef: React.RefObject<HTMLInputElement | null>;
-  }) => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={form.title}
-            onChange={(e) => setForm({ title: e.target.value })}
-            placeholder="e.g. A1 Class — Greetings & Introduction"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Group <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={form.group_id}
-            onChange={(e) => setForm({ group_id: e.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-          >
-            <option value="">Select group…</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.group_name}{g.level_code ? ` (${g.level_code.toUpperCase()})` : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">Class Date</label>
-          <input
-            type="date"
-            value={form.class_date}
-            onChange={(e) => setForm({ class_date: e.target.value })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1.5">Sort Order</label>
-          <input
-            type="number"
-            value={form.sort_order}
-            onChange={(e) => setForm({ sort_order: parseInt(e.target.value) || 0 })}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1.5">Description</label>
-        <textarea
-          rows={3}
-          value={form.description}
-          onChange={(e) => setForm({ description: e.target.value })}
-          placeholder="What was covered in this class?"
-          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-        />
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1.5">Video URL</label>
-        <input
-          type="url"
-          value={form.video_url}
-          onChange={(e) => setForm({ video_url: e.target.value })}
-          placeholder="YouTube, Vimeo, OneDrive, SharePoint, or Teams recording link"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-        />
-        <p className="mt-1 text-xs text-slate-400">YouTube embeds automatically. OneDrive/Teams shows a Watch button.</p>
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1.5">
-          Attach File
-          <span className="ml-1.5 font-normal text-slate-400">(PDF, DOC, DOCX, PPT, PPTX — max 50 MB)</span>
-        </label>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.ppt,.pptx"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-1 file:text-xs file:font-bold file:text-amber-700 hover:file:bg-amber-200 focus:outline-none transition"
-        />
-        {file && (
-          <p className="mt-1 text-xs text-green-600 font-medium">
-            Selected: {file.name} ({(file.size / 1024).toFixed(0)} KB)
-          </p>
-        )}
-        {!file && form.file_name && (
-          <p className="mt-1 text-xs text-slate-500">Current: {form.file_name}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-xs font-bold text-slate-700 mb-1.5">Special Instructions</label>
-        <textarea
-          rows={3}
-          value={form.special_instructions}
-          onChange={(e) => setForm({ special_instructions: e.target.value })}
-          placeholder="Homework, review notes, or reminders for students…"
-          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-100 transition"
-        />
-      </div>
-
-      <div className="flex items-center gap-3">
-        <label className="relative inline-flex cursor-pointer items-center">
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={form.is_published}
-            onChange={(e) => setForm({ is_published: e.target.checked })}
-          />
-          <div className="h-5 w-9 rounded-full bg-slate-200 peer-checked:bg-amber-500 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition-all peer-checked:after:translate-x-4" />
-        </label>
-        <span className="text-sm font-medium text-slate-700">Published (visible to students)</span>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       {/* Header */}
@@ -377,6 +382,7 @@ export default function DailyRecordingsAdminPage() {
             file={createFile}
             setFile={setCreateFile}
             fileRef={createFileRef}
+            groups={groups}
           />
           {createMsg && (
             <p className={`mt-4 text-sm font-medium ${createMsg.type === "ok" ? "text-green-600" : "text-red-600"}`}>
@@ -508,6 +514,7 @@ export default function DailyRecordingsAdminPage() {
                       file={editFiles[rec.id] ?? null}
                       setFile={(f) => setEditFiles((prev) => ({ ...prev, [rec.id]: f }))}
                       fileRef={{ current: null }}
+                      groups={groups}
                     />
                     {saveMsg[rec.id] && (
                       <p className={`mt-3 text-sm font-medium ${saveMsg[rec.id].type === "ok" ? "text-green-600" : "text-red-600"}`}>

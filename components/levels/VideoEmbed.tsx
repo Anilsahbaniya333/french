@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getYouTubeId, getVimeoId, isDirectVideo, isRecordingLink } from "@/lib/video-utils";
+import { getYouTubeId, getVimeoId, isDirectVideo, isExternalRecordingLink } from "@/lib/video-utils";
 
 interface VideoEmbedProps {
   title: string;
@@ -11,8 +11,8 @@ interface VideoEmbedProps {
 export default function VideoEmbed({ title, url }: VideoEmbedProps) {
   const [error, setError] = useState(false);
 
-  // ── OneDrive / SharePoint / Teams recording link ──
-  if (isRecordingLink(url)) {
+  // ── Google Drive / OneDrive / SharePoint / Teams recording link ──
+  if (isExternalRecordingLink(url)) {
     return (
       <div className="w-full max-w-2xl">
         <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">

@@ -49,11 +49,12 @@ export function isDirectVideo(url: string): boolean {
 }
 
 /**
- * True for OneDrive / SharePoint / Teams recording links.
- * These cannot be embedded — render as a "Watch Recording" button instead.
+ * True for links that cannot be embedded — Google Drive, OneDrive, SharePoint,
+ * Teams. Render these as a "Watch Recording" button instead of an iframe.
  */
-export function isRecordingLink(url: string): boolean {
+export function isExternalRecordingLink(url: string): boolean {
   return (
+    url.includes("drive.google.com") ||
     url.includes("sharepoint.com") ||
     url.includes("1drv.ms") ||
     url.includes("onedrive.live.com") ||
@@ -61,3 +62,6 @@ export function isRecordingLink(url: string): boolean {
     url.includes("microsoftstream.com")
   );
 }
+
+/** @deprecated Use isExternalRecordingLink */
+export const isRecordingLink = isExternalRecordingLink;
