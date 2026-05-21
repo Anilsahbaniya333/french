@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface ChecklistItem {
   id: string;
@@ -10,6 +10,11 @@ interface ChecklistItem {
   target_group_uuids: string[];
   is_active: boolean;
   sort_order: number;
+  coverage_notes: string | null;
+  video_url: string | null;
+  resource_file_url: string | null;
+  resource_file_name: string | null;
+  exercise_instructions: string | null;
 }
 
 interface Group {
@@ -27,6 +32,11 @@ const emptyForm = {
   target_group_uuids: [] as string[],
   sort_order: 0,
   is_active: true,
+  coverage_notes: "",
+  video_url: "",
+  resource_file_url: "",
+  resource_file_name: "",
+  exercise_instructions: "",
 };
 
 export default function AdminLearningChecklistsPage() {
@@ -38,6 +48,10 @@ export default function AdminLearningChecklistsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [showResources, setShowResources] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = () => {
     setLoading(true);
@@ -60,6 +74,9 @@ export default function AdminLearningChecklistsPage() {
     setEditingId(null);
     setShowForm(false);
     setFormError(null);
+    setShowResources(false);
+    setUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e: { preventDefault(): void }) => {
@@ -81,6 +98,11 @@ export default function AdminLearningChecklistsPage() {
           target_group_uuids: form.target_group_uuids,
           sort_order: form.sort_order,
           is_active: form.is_active,
+          coverage_notes: form.coverage_notes || null,
+          video_url: form.video_url || null,
+          resource_file_url: form.resource_file_url || null,
+          resource_file_name: form.resource_file_name || null,
+          exercise_instructions: form.exercise_instructions || null,
         }),
       });
       const data = await res.json();
@@ -102,10 +124,20 @@ export default function AdminLearningChecklistsPage() {
       target_group_uuids: item.target_group_uuids ?? [],
       sort_order: item.sort_order,
       is_active: item.is_active,
+      coverage_notes: item.coverage_notes ?? "",
+      video_url: item.video_url ?? "",
+      resource_file_url: item.resource_file_url ?? "",
+      resource_file_name: item.resource_file_name ?? "",
+      exercise_instructions: item.exercise_instructions ?? "",
     });
     setEditingId(item.id);
     setShowForm(true);
     setFormError(null);
+    setUploadError(null);
+    const hasResources = !!(
+      item.coverage_notes || item.video_url || item.resource_file_url || item.exercise_instructions
+    );
+    setShowResources(hasResources);
   };
 
   const handleDelete = async (id: string) => {
@@ -122,6 +154,34 @@ export default function AdminLearningChecklistsPage() {
         : [...prev.target_group_uuids, groupId],
     }));
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/learning-checklists/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setForm((p) => ({ ...p, resource_file_url: data.url, resource_file_name: data.name }));
+    } catch (err: any) {
+      setUploadError(err.message);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const removeFile = () => {
+    setForm((p) => ({ ...p, resource_file_url: "", resource_file_name: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const itemHasResources = (item: ChecklistItem) =>
+    !!(item.coverage_notes || item.video_url || item.resource_file_url || item.exercise_instructions);
 
   return (
     <div>
@@ -154,6 +214,7 @@ export default function AdminLearningChecklistsPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ── Core fields ── */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-slate-600">
@@ -243,10 +304,132 @@ export default function AdminLearningChecklistsPage() {
               </label>
             </div>
 
+            {/* ── Optional Resources collapsible ── */}
+            <div className="overflow-hidden rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowResources((v) => !v)}
+                className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-slate-50"
+              >
+                <span className="text-xs font-bold text-slate-700">
+                  Find the resources here
+                  <span className="ml-1.5 font-normal text-slate-400">
+                    — video, file, practice instructions
+                  </span>
+                </span>
+                <svg
+                  className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${showResources ? "rotate-180" : ""}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showResources && (
+                <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+                  {/* coverage_notes */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-600">
+                      What students should cover
+                    </label>
+                    <textarea
+                      value={form.coverage_notes}
+                      onChange={(e) => setForm((p) => ({ ...p, coverage_notes: e.target.value }))}
+                      rows={3}
+                      placeholder="Example: Learn greetings, polite expressions, tu vs vous, and basic self-introduction."
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+
+                  {/* video_url */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-600">
+                      Helpful video link
+                    </label>
+                    <input
+                      type="url"
+                      value={form.video_url}
+                      onChange={(e) => setForm((p) => ({ ...p, video_url: e.target.value }))}
+                      placeholder="YouTube, Vimeo, Google Drive, OneDrive, SharePoint, Teams…"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+
+                  {/* resource_file */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-600">
+                      Related file{" "}
+                      <span className="font-normal text-slate-400">
+                        (PDF, DOC, DOCX, PPT, PPTX)
+                      </span>
+                    </label>
+
+                    {form.resource_file_url && (
+                      <div className="mb-2 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                        <svg className="h-4 w-4 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="min-w-0 flex-1 truncate text-sm text-slate-700">
+                          {form.resource_file_name ?? "Uploaded file"}
+                        </span>
+                        <a
+                          href={form.resource_file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-xs text-blue-600 hover:underline"
+                        >
+                          View
+                        </a>
+                        <button
+                          type="button"
+                          onClick={removeFile}
+                          className="shrink-0 text-xs text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ppt,.pptx"
+                      onChange={handleFileUpload}
+                      disabled={uploadingFile}
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-600
+                        file:mr-3 file:rounded-lg file:border-0 file:bg-amber-50 file:px-3 file:py-1
+                        file:text-xs file:font-semibold file:text-amber-700 hover:file:bg-amber-100
+                        focus:outline-none focus:ring-2 focus:ring-amber-400 disabled:opacity-50"
+                    />
+                    {uploadingFile && (
+                      <p className="mt-1 text-xs text-slate-400">Uploading…</p>
+                    )}
+                    {uploadError && (
+                      <p className="mt-1 text-xs text-red-500">{uploadError}</p>
+                    )}
+                  </div>
+
+                  {/* exercise_instructions */}
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-slate-600">
+                      Practice / Exercise instructions
+                    </label>
+                    <textarea
+                      value={form.exercise_instructions}
+                      onChange={(e) => setForm((p) => ({ ...p, exercise_instructions: e.target.value }))}
+                      rows={3}
+                      placeholder="Example: Watch the video, read the PDF, then practice 5 sentences using this topic."
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-1">
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || uploadingFile}
                 className="rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
               >
                 {saving ? "Saving…" : editingId ? "Update Topic" : "Add Topic"}
@@ -295,6 +478,14 @@ export default function AdminLearningChecklistsPage() {
                       </p>
                       {item.description && (
                         <p className="mt-0.5 text-xs text-slate-400">{item.description}</p>
+                      )}
+                      {itemHasResources(item) && (
+                        <span className="mt-1 inline-flex items-center gap-1 rounded-md border border-blue-100 bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-600">
+                          <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Resources
+                        </span>
                       )}
                     </td>
                     <td className="px-5 py-3">

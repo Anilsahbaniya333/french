@@ -23,6 +23,11 @@ export async function PATCH(
   if (body.target_group_uuids !== undefined) updates.target_group_uuids = body.target_group_uuids;
   if (body.sort_order !== undefined) updates.sort_order = body.sort_order;
   if (body.is_active !== undefined) updates.is_active = body.is_active;
+  if (body.coverage_notes !== undefined) updates.coverage_notes = body.coverage_notes?.trim() || null;
+  if (body.video_url !== undefined) updates.video_url = body.video_url?.trim() || null;
+  if (body.resource_file_url !== undefined) updates.resource_file_url = body.resource_file_url?.trim() || null;
+  if (body.resource_file_name !== undefined) updates.resource_file_name = body.resource_file_name?.trim() || null;
+  if (body.exercise_instructions !== undefined) updates.exercise_instructions = body.exercise_instructions?.trim() || null;
 
   const { data, error } = await supabase
     .from("learning_checklist_items")

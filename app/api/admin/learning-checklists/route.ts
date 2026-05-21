@@ -27,7 +27,10 @@ export async function POST(req: Request) {
   if (!supabase) return NextResponse.json({ error: "DB not configured" }, { status: 503 });
 
   const body = await req.json();
-  const { item_text, description, level_code, target_group_uuids, sort_order, is_active } = body;
+  const {
+    item_text, description, level_code, target_group_uuids, sort_order, is_active,
+    coverage_notes, video_url, resource_file_url, resource_file_name, exercise_instructions,
+  } = body;
 
   if (!item_text?.trim()) {
     return NextResponse.json({ error: "topic name is required" }, { status: 400 });
@@ -42,6 +45,11 @@ export async function POST(req: Request) {
       target_group_uuids: target_group_uuids ?? [],
       sort_order: sort_order ?? 0,
       is_active: is_active !== false,
+      coverage_notes: coverage_notes?.trim() || null,
+      video_url: video_url?.trim() || null,
+      resource_file_url: resource_file_url?.trim() || null,
+      resource_file_name: resource_file_name?.trim() || null,
+      exercise_instructions: exercise_instructions?.trim() || null,
     })
     .select()
     .single();

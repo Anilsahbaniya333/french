@@ -136,6 +136,61 @@ export async function GET() {
     END $$;
   `);
 
+  // ── learning_checklist_items: add optional resource columns ─────────────────
+  await sql("lci_add_coverage_notes", `
+    ALTER TABLE learning_checklist_items ADD COLUMN IF NOT EXISTS coverage_notes TEXT;
+  `);
+
+  await sql("lci_add_video_url", `
+    ALTER TABLE learning_checklist_items ADD COLUMN IF NOT EXISTS video_url TEXT;
+  `);
+
+  await sql("lci_add_resource_file_url", `
+    ALTER TABLE learning_checklist_items ADD COLUMN IF NOT EXISTS resource_file_url TEXT;
+  `);
+
+  await sql("lci_add_resource_file_name", `
+    ALTER TABLE learning_checklist_items ADD COLUMN IF NOT EXISTS resource_file_name TEXT;
+  `);
+
+  await sql("lci_add_exercise_instructions", `
+    ALTER TABLE learning_checklist_items ADD COLUMN IF NOT EXISTS exercise_instructions TEXT;
+  `);
+
+  // ── learning-checklist-files storage bucket ──────────────────────────────────
+  await sql("learning_checklist_files_bucket", `
+    INSERT INTO storage.buckets (id, name, public)
+    VALUES ('learning-checklist-files', 'learning-checklist-files', true)
+    ON CONFLICT (id) DO NOTHING;
+  `);
+
+  await sql("learning_checklist_files_read_policy", `
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'lcf public read'
+      ) THEN
+        CREATE POLICY "lcf public read"
+          ON storage.objects FOR SELECT
+          USING (bucket_id = 'learning-checklist-files');
+      END IF;
+    END $$;
+  `);
+
+  await sql("learning_checklist_files_write_policy", `
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'lcf service role all'
+      ) THEN
+        CREATE POLICY "lcf service role all"
+          ON storage.objects FOR ALL
+          USING (bucket_id = 'learning-checklist-files')
+          WITH CHECK (bucket_id = 'learning-checklist-files');
+      END IF;
+    END $$;
+  `);
+
   const hasErrors = Object.values(results).some((v) => v.startsWith("ERROR"));
   return NextResponse.json({ ok: !hasErrors, results });
 }
