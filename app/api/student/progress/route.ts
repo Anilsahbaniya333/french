@@ -42,8 +42,9 @@ export async function GET() {
         .select("id, target_group_uuids"),
       supabase
         .from("learning_checklist_items")
-        .select("id, target_group_uuids")
-        .eq("is_active", true),
+        .select("id, item_text, description, level_code, coverage_notes, video_url, resource_file_url, exercise_instructions, target_group_uuids, sort_order")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true }),
       supabase
         .from("student_learning_progress")
         .select("checklist_item_id, is_completed")
@@ -114,9 +115,33 @@ export async function GET() {
 
   const assignedIds = new Set(assignedChecklistItems.map((i: any) => i.id));
   const checklistTotal = assignedChecklistItems.length;
+
+  const checklistProgressMap: Record<string, boolean> = {};
+  (checklistProgressRes.data ?? []).forEach((p: any) => {
+    checklistProgressMap[p.checklist_item_id] = p.is_completed;
+  });
+
   const checklistCompleted = (checklistProgressRes.data ?? []).filter(
     (p: any) => p.is_completed && assignedIds.has(p.checklist_item_id)
   ).length;
+
+  const nextChecklistItemRaw = assignedChecklistItems
+    .slice()
+    .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .find((item: any) => !checklistProgressMap[item.id]);
+
+  const nextChecklistItem = nextChecklistItemRaw
+    ? {
+        id: nextChecklistItemRaw.id,
+        item_text: nextChecklistItemRaw.item_text,
+        description: nextChecklistItemRaw.description ?? null,
+        level_code: nextChecklistItemRaw.level_code ?? null,
+        coverage_notes: nextChecklistItemRaw.coverage_notes ?? null,
+        video_url: nextChecklistItemRaw.video_url ?? null,
+        resource_file_url: nextChecklistItemRaw.resource_file_url ?? null,
+        exercise_instructions: nextChecklistItemRaw.exercise_instructions ?? null,
+      }
+    : null;
 
   // ── Final progress formula ───────────────────────────────────────────────
   // Course progress = average of 4 components
@@ -149,5 +174,6 @@ export async function GET() {
     // Kept for backward compat (dashboard home uses this field)
     progressPercent: finalPercent,
     nextTopic,
+    nextChecklistItem,
   });
 }

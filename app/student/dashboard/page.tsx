@@ -3,6 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+interface NextChecklistItem {
+  id: string;
+  item_text: string;
+  description: string | null;
+  level_code: string | null;
+  coverage_notes: string | null;
+  video_url: string | null;
+  resource_file_url: string | null;
+  exercise_instructions: string | null;
+}
+
 interface Progress {
   levelCode: string | null;
   totalTopics: number;
@@ -13,6 +24,9 @@ interface Progress {
   nextTopic: { id: string; title: string; moduleTitle: string } | null;
   totalSubmissions: number;
   gradedSubmissions: number;
+  checklistTotal: number;
+  checklistCompleted: number;
+  nextChecklistItem: NextChecklistItem | null;
 }
 
 interface Student {
@@ -238,23 +252,82 @@ export default function StudentDashboardHome() {
         ))}
       </div>
 
-      {/* ── Continue Learning ─────────────────────────────────────────── */}
-      {progress?.nextTopic && (
-        <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-5">
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 mb-3">Continue where you left off</p>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-xs text-amber-600 font-medium">{progress.nextTopic.moduleTitle}</p>
-              <p className="font-semibold text-slate-800 mt-0.5 text-lg">{progress.nextTopic.title}</p>
-            </div>
+      {/* ── Continue Your Learning ────────────────────────────────────── */}
+      {progress && (
+        progress.checklistTotal === 0 ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Continue Your Learning</p>
+            <p className="text-sm text-slate-500 italic mb-4">No learning checklist assigned yet.</p>
             <Link
-              href={`/student/dashboard/lessons/${progress.nextTopic.id}`}
-              className="shrink-0 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors shadow-sm"
+              href="/student/dashboard/lessons"
+              className="inline-flex items-center rounded-xl bg-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition-colors"
             >
-              Start lesson →
+              Go to My Lessons →
             </Link>
           </div>
-        </div>
+        ) : progress.nextChecklistItem ? (
+          <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 mb-3">Continue Your Learning</p>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-0">
+                {progress.nextChecklistItem.level_code && (
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold text-white mb-2 ${LEVEL_COLORS[progress.nextChecklistItem.level_code.toLowerCase()] ?? "bg-slate-400"}`}>
+                    {progress.nextChecklistItem.level_code.toUpperCase()}
+                  </span>
+                )}
+                <p className="font-semibold text-slate-800 text-lg leading-snug">{progress.nextChecklistItem.item_text}</p>
+                {progress.nextChecklistItem.description && (
+                  <p className="text-sm text-slate-500 mt-1 line-clamp-2">{progress.nextChecklistItem.description}</p>
+                )}
+                {(progress.nextChecklistItem.video_url || progress.nextChecklistItem.resource_file_url || progress.nextChecklistItem.exercise_instructions) && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {progress.nextChecklistItem.video_url && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-700">
+                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                        </svg>
+                        Video
+                      </span>
+                    )}
+                    {progress.nextChecklistItem.resource_file_url && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        File
+                      </span>
+                    )}
+                    {progress.nextChecklistItem.exercise_instructions && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Practice
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <Link
+                href="/student/dashboard/learning-progress"
+                className="shrink-0 rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 transition-colors shadow-sm"
+              >
+                Start Learning →
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 mb-3">Continue Your Learning</p>
+            <p className="text-lg font-semibold text-slate-800 mb-4">All checklist topics completed 🎉</p>
+            <Link
+              href="/student/dashboard/learning-progress"
+              className="inline-flex items-center rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors shadow-sm"
+            >
+              Review Progress →
+            </Link>
+          </div>
+        )
       )}
 
       {/* ── Quick nav cards ───────────────────────────────────────────── */}
