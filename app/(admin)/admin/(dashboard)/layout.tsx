@@ -324,7 +324,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             </svg>
           </button>
           <span className="text-sm font-black text-slate-800 tracking-tight">
-            Mappele<span className="text-amber-500">.</span>
+            Mappell<span className="text-amber-500">.</span>Academy
             <span className="ml-1.5 text-xs font-medium text-slate-400 uppercase tracking-wider">Admin</span>
           </span>
         </div>

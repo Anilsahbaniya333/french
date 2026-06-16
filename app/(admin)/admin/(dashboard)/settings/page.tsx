@@ -57,7 +57,7 @@ export default function SiteSettingsPage() {
               type="email"
               value={settings.contact_email}
               onChange={(e) => setSettings((p) => ({ ...p, contact_email: e.target.value }))}
-              placeholder="info@mappelefrench.com"
+              placeholder="info@mappellacademy.com"
               className={inp}
             />
           </div>

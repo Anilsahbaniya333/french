@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export default function ContactForm() {
+interface Props {
+  contactEmail?: string;
+}
+
+export default function ContactForm({ contactEmail }: Props) {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -20,23 +24,28 @@ export default function ContactForm() {
       message: data.get("message") as string,
     };
 
-    const res = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const json = await res.json().catch(() => ({}));
+      const json = await res.json().catch(() => ({}));
 
-    if (res.ok && json.success) {
-      setStatus("success");
-      setMessage("Message sent! We'll get back to you soon.");
-      form.reset();
-      return;
+      if (res.ok && json.success) {
+        setStatus("success");
+        setMessage("Message sent! We'll get back to you soon.");
+        form.reset();
+        return;
+      }
+
+      setStatus("error");
+      setMessage(json.error || "Could not send message. Please try again.");
+    } catch {
+      setStatus("error");
+      setMessage("Network error. Please try again or email us directly.");
     }
-
-    setStatus("error");
-    setMessage(json.error || "Could not send message. Please try again.");
   }
 
   return (
@@ -79,10 +88,25 @@ export default function ContactForm() {
         />
       </div>
 
-      {message && (
-        <p className={`text-sm ${status === "success" ? "text-green-600" : "text-red-600"}`}>
-          {message}
-        </p>
+      {status === "success" && (
+        <p className="text-sm text-green-600">{message}</p>
+      )}
+
+      {status === "error" && (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 space-y-1">
+          <p>{message}</p>
+          {contactEmail && (
+            <p>
+              You can also reach us directly at{" "}
+              <a
+                href={`mailto:${contactEmail}`}
+                className="font-medium underline hover:text-red-900"
+              >
+                {contactEmail}
+              </a>
+            </p>
+          )}
+        </div>
       )}
 
       <button

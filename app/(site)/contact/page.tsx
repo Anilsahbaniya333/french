@@ -26,7 +26,7 @@ export default async function ContactPage() {
       <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-5">
         {/* Form */}
         <div className="lg:col-span-3">
-          <ContactForm />
+          <ContactForm contactEmail={email} />
         </div>
 
         {/* Contact info */}

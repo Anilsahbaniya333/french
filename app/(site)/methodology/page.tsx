@@ -32,7 +32,7 @@ export default async function MethodologyPage() {
         <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">How We Teach</p>
         <h1 className="text-4xl font-black text-slate-800 leading-tight">Our Methodology</h1>
         <p className="mt-3 text-lg text-slate-500">
-          How we teach French at Mappele French
+          How we teach French at Mappell Academy
         </p>
         <div className="mt-6 h-1 w-16 rounded-full bg-amber-500" />
       </div>

@@ -1,5 +1,5 @@
 /**
- * Standard reusable level schema for Mappele French
+ * Standard reusable level schema for Mappell Academy
  * Used for both Supabase records and fallback mock data
  */
 

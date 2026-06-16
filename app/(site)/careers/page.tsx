@@ -43,7 +43,7 @@ export default async function CareersPage() {
             <span className="text-xs font-bold uppercase tracking-wide text-amber-700">Join Our Team</span>
           </div>
           <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
-            Careers at <span className="text-shimmer">Mappele French</span>
+            Careers at <span className="text-shimmer">Mappell Academy</span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-slate-600">
             We&apos;re growing — and we&apos;re looking for passionate educators and professionals to join us.

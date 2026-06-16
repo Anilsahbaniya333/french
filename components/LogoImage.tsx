@@ -23,11 +23,11 @@ export default function LogoImage({
     return (
       <span className={textClassName ?? "flex items-center"}>
         <span className={`text-xl font-black tracking-tight ${light ? "text-white" : "text-slate-800"}`}>
-          Mappele
+          Mappell
         </span>
         <span className="text-xl font-black text-amber-500">.</span>
         <span className={`text-xl font-black tracking-tight ${light ? "text-white" : "text-slate-800"}`}>
-          French
+          Academy
         </span>
       </span>
     );
@@ -36,8 +36,8 @@ export default function LogoImage({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/logo.jfif"
-      alt="Mappele Academy"
+      src="/logo.png"
+      alt="Mappell Academy"
       width={size}
       height={size}
       className={imgClassName}

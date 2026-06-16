@@ -40,7 +40,7 @@ export default function StudentLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <span className="text-3xl font-black text-slate-800 tracking-tight">
-              Mappele<span className="text-amber-500">.</span>
+              Mappell<span className="text-amber-500">.</span>Academy
             </span>
           </Link>
           <p className="mt-2 text-slate-500 text-sm">Sign in to your student account</p>

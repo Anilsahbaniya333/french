@@ -145,7 +145,7 @@ export default function StudentDashboardLayout({ children }: { children: React.R
       <div className="border-b border-slate-100 px-5 py-5">
         <Link href="/" className="inline-block">
           <span className="text-base font-black text-slate-800 tracking-tight">
-            Mappele<span className="text-amber-500">.</span>
+            Mappell<span className="text-amber-500">.</span>Academy
           </span>
         </Link>
         <p className="mt-0.5 text-xs font-medium text-slate-400 uppercase tracking-wider">Student Portal</p>
@@ -257,7 +257,7 @@ export default function StudentDashboardLayout({ children }: { children: React.R
             </svg>
           </button>
           <span className="text-sm font-bold text-slate-800">
-            Mappele<span className="text-amber-500">.</span>
+            Mappell<span className="text-amber-500">.</span>Academy
           </span>
           <div className="w-9" />
         </div>

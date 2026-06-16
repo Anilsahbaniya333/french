@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mappele French | Learn French with Confidence",
+  title: "Mappell Academy | Learn French with Confidence",
   description: "Structured French courses from A1 to B2. Learn with experienced teachers, flexible schedules, and comprehensive materials.",
 };
 

@@ -4,8 +4,8 @@
  */
 
 export const SITE_CONFIG = {
-  name: "Mappele French",
-  tagline: "Learn French with confidence",
+  name: "Mappell Academy",
+  tagline: "French · Future · Freedom",
 };
 
 export const WHY_CHOOSE_US = [

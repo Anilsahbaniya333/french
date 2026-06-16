@@ -148,7 +148,7 @@ export default async function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-800 pt-8 sm:flex-row">
           <p className="text-xs text-slate-500">
-            &copy; {year} Mappele French. All rights reserved.
+            &copy; {year} Mappell Academy. All rights reserved.
           </p>
           <p className="text-xs text-slate-600">
             Structured · Expert-led · CEFR aligned

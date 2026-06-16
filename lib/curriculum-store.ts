@@ -4,7 +4,7 @@
 
 import type { Level } from "@/types/curriculum";
 
-const STORAGE_KEY = "mappele_curriculum";
+const STORAGE_KEY = "mappell_curriculum";
 
 export function loadFromStorage(): Level[] | null {
   if (typeof window === "undefined") return null;

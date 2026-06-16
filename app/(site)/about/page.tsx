@@ -66,7 +66,7 @@ export default async function AboutPage() {
             <span className="text-xs font-bold uppercase tracking-wide text-amber-700">About Us</span>
           </div>
           <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
-            About <span className="text-shimmer">Mappele French</span>
+            About <span className="text-shimmer">Mappell Academy</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
             We are a dedicated French language school offering structured, CEFR-aligned online classes from A1 to B2.
@@ -195,7 +195,7 @@ export default async function AboutPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Behind the Scenes</p>
               <h2 className="text-3xl font-black text-slate-800 sm:text-4xl">Our Team</h2>
               <p className="mx-auto mt-3 max-w-xl text-slate-500 leading-relaxed">
-                The people who keep Mappele French running smoothly for every student.
+                The people who keep Mappell Academy running smoothly for every student.
               </p>
             </div>
 
