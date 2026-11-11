@@ -13,14 +13,39 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
+
+  /* Brand navy */
+  --color-navy-50:  #eef3fb;
+  --color-navy-100: #d9e3f5;
+  --color-navy-200: #b3c6ea;
+  --color-navy-300: #8aa5d9;
+  --color-navy-600: #2b4f94;
+  --color-navy-700: #1f3b74;
+  --color-navy-800: #172d5a;
+  --color-navy-900: #0f1f42;
+  --color-navy-950: #09142d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep anchor targets and focused form fields clear of the sticky navbar */
+html {
+  scroll-padding-top: 5.5rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-jakarta), system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -75,5 +100,10 @@ body {
 /* Dot-grid pattern */
 .hero-pattern {
   background-image: radial-gradient(circle, #f59e0b22 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.hero-pattern-light {
+  background-image: radial-gradient(circle, #ffffff14 1px, transparent 1px);
   background-size: 28px 28px;
 }

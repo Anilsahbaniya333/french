@@ -5,7 +5,7 @@ export default function AdminRegistrationsPage() {
     <div>
       <h1 className="text-2xl font-bold text-slate-800">Student Registrations</h1>
       <p className="mt-1 text-slate-600">
-        View and manage student registration submissions.
+        Review new registrations, verify Interac e-Transfer payments, and activate student accounts.
       </p>
       <RegistrationsList />
     </div>

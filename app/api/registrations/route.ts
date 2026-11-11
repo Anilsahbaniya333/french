@@ -1,24 +1,22 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { createServiceRoleClient, createServerClient } from "@/lib/supabase/server";
 import { fetchRegistrations } from "@/lib/supabase/queries";
-import { verifyAdminSessionToken, COOKIE_NAME } from "@/lib/auth-admin";
+import { checkAdmin } from "@/lib/auth-admin-check";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const token = (await cookies()).get(COOKIE_NAME)?.value;
-  const password = process.env.ADMIN_PASSWORD;
-  const secret = process.env.ADMIN_SESSION_SECRET;
-  if (
-    password &&
-    password.length >= 8 &&
-    secret &&
-    secret.length >= 16 &&
-    (!token || !(await verifyAdminSessionToken(token)))
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!(await checkAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const supabase = createServiceRoleClient() ?? createServerClient();
   const registrations = await fetchRegistrations(supabase);
-  return NextResponse.json({ registrations });
+
+  // Never send storage references / screenshot URLs in the list — the details
+  // endpoint issues a short-lived signed URL on demand.
+  const safe = registrations.map(({ paymentScreenshotUrl, ...r }) => ({
+    ...r,
+    hasPaymentProof: Boolean(paymentScreenshotUrl),
+  }));
+
+  return NextResponse.json({ registrations: safe }, { headers: { "Cache-Control": "no-store" } });
 }

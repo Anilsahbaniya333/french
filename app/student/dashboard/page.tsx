@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { getCoursePackage } from "@/data/courses";
 
 interface NextChecklistItem {
   id: string;
@@ -35,6 +36,7 @@ interface Student {
   group_id: number | null;
   group_uuid?: string | null;
   level_code: string | null;
+  course_package?: string | null;
 }
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -124,6 +126,7 @@ export default function StudentDashboardHome() {
   const levelLabel = levelCode ? LEVEL_LABELS[levelCode] : null;
   const pct = progress?.progressPercent ?? 0;
   const ringColor = levelCode ? LEVEL_RING[levelCode] : "#f59e0b";
+  const enrolled = getCoursePackage(student?.course_package);
 
   return (
     <div className="space-y-6">
@@ -133,7 +136,13 @@ export default function StudentDashboardHome() {
         <h1 className="text-2xl font-bold text-slate-800">
           Welcome back, {student?.full_name?.split(" ")[0] ?? "Student"} 👋
         </h1>
-        <p className="mt-1 text-slate-500 text-sm">Here's your learning summary.</p>
+        <p className="mt-1 text-slate-500 text-sm">Here&apos;s your learning summary.</p>
+        {enrolled && (
+          <p className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm text-amber-900">
+            <span className="font-semibold">Enrolled:</span> {enrolled.name}
+            <span className="text-amber-700">· {enrolled.duration}</span>
+          </p>
+        )}
       </div>
 
       {/* ── Level + Progress ─────────────────────────────────────────── */}

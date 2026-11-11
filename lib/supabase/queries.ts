@@ -152,14 +152,44 @@ export async function fetchMethodology(
   };
 }
 
-/** Insert student registration */
+/** Extract the column name from a PostgREST/Postgres "unknown column" error, if that's what it is. */
+function missingColumn(error: { code?: string; message?: string } | null): string | null {
+  if (!error?.message) return null;
+  if (error.code !== "PGRST204" && error.code !== "42703" && !error.message.includes("schema cache")) return null;
+  const m =
+    error.message.match(/'([a-z_]+)' column/i) ??
+    error.message.match(/column "?(?:[a-z_]+\.)?([a-z_]+)"? (?:of relation \S+ )?does not exist/i);
+  return m ? m[1] : null;
+}
+
+/**
+ * Insert student registration.
+ *
+ * Self-healing across schema versions: if the database reports an unknown column
+ * (e.g. migration_registration_v2.sql not run yet, or the legacy `name` vs `full_name`
+ * column), that column is dropped from the payload and any v2 data is folded into
+ * the legacy `message` / `experience` / `preferred_time` / `goals` columns so nothing
+ * the student entered is lost.
+ */
 export async function insertRegistration(
   supabase: SupabaseClient | null,
-  data: Omit<StudentRegistration, "id" | "createdAt" | "status">
-): Promise<{ success: boolean; error?: string }> {
+  data: Omit<StudentRegistration, "id" | "createdAt" | "status"> & { sourceIpHash?: string | null }
+): Promise<{ success: boolean; id?: string; error?: string }> {
   if (!supabase) return { success: false, error: "Supabase not configured" };
 
-  const baseFields = {
+  const v2Fields: Record<string, string | null> = {
+    course_package: data.coursePackage ?? null,
+    country_timezone: data.countryTimezone ?? null,
+    current_level: data.currentLevel ?? null,
+    preferred_schedule: data.preferredSchedule ?? null,
+    learning_goal: data.learningGoal ?? null,
+    consent_at: data.consentAt ?? null,
+    source_ip_hash: data.sourceIpHash ?? null,
+  };
+
+  const payload: Record<string, unknown> = {
+    name: data.fullName,
+    full_name: data.fullName,
     email: data.email,
     phone: data.phone,
     level: data.level,
@@ -169,24 +199,65 @@ export async function insertRegistration(
     goals: data.goals ?? null,
     message: data.message ?? null,
     payment_screenshot_url: data.paymentScreenshotUrl ?? null,
+    ...v2Fields,
   };
 
-  // The table uses 'name' as the NOT NULL column. 'full_name' is an alias added later and may not exist.
-  const { error } = await supabase
-    .from("student_registrations")
-    .insert({ name: data.fullName, full_name: data.fullName, ...baseFields });
+  let folded = false;
+  const foldIntoLegacy = () => {
+    if (folded) return;
+    folded = true;
+    payload.experience ??= data.currentLevel ?? null;
+    payload.preferred_time ??= data.preferredSchedule ?? null;
+    payload.goals ??= data.learningGoal ?? null;
+    const lines = [
+      data.coursePackage && `Course: ${data.coursePackage}`,
+      data.countryTimezone && `Country / time zone: ${data.countryTimezone}`,
+      data.consentAt && `Consent to be contacted: ${data.consentAt}`,
+    ].filter(Boolean);
+    const comments = data.message ? `\n\n${data.message}` : "";
+    payload.message = lines.length ? `${lines.join("\n")}${comments}` : data.message ?? null;
+  };
 
-  // If full_name column doesn't exist yet (42703 / schema cache), retry with name only
-  if (error?.code === "42703" || error?.message?.includes("full_name") || error?.message?.includes("schema cache")) {
-    const { error: retryError } = await supabase
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const { data: row, error } = await supabase
       .from("student_registrations")
-      .insert({ name: data.fullName, ...baseFields });
-    if (retryError) return { success: false, error: retryError.message };
-    return { success: true };
-  }
+      .insert(payload)
+      .select("id")
+      .single();
 
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+    if (!error) return { success: true, id: row?.id ? String(row.id) : undefined };
+
+    const col = missingColumn(error);
+    if (!col || !(col in payload)) return { success: false, error: error.message };
+
+    delete payload[col];
+    if (col in v2Fields) foldIntoLegacy();
+    // Never drop both name columns — at least one must exist
+    if (!("name" in payload) && !("full_name" in payload)) {
+      return { success: false, error: error.message };
+    }
+  }
+  return { success: false, error: "Could not match the student_registrations schema" };
+}
+
+/** Return true if this email registered for the same course within the last `minutes`. */
+export async function hasRecentRegistration(
+  supabase: SupabaseClient | null,
+  email: string,
+  level: string,
+  minutes = 30
+): Promise<boolean> {
+  if (!supabase) return false;
+  const since = new Date(Date.now() - minutes * 60_000).toISOString();
+  const { data, error } = await supabase
+    .from("student_registrations")
+    .select("id")
+    .eq("email", email.toLowerCase())
+    .eq("level", level)
+    .gte("created_at", since)
+    .limit(1);
+  if (error) return false;
+  return (data ?? []).length > 0;
 }
 
 /** Insert contact form submission */
@@ -436,5 +507,14 @@ export async function fetchRegistrations(
     paymentScreenshotUrl: r.payment_screenshot_url ? String(r.payment_screenshot_url) : null,
     status: r.status ? String(r.status) : "pending",
     createdAt: r.created_at ? String(r.created_at) : undefined,
+    coursePackage: r.course_package ? String(r.course_package) : null,
+    countryTimezone: r.country_timezone ? String(r.country_timezone) : null,
+    currentLevel: r.current_level ? String(r.current_level) : null,
+    preferredSchedule: r.preferred_schedule ? String(r.preferred_schedule) : null,
+    learningGoal: r.learning_goal ? String(r.learning_goal) : null,
+    consentAt: r.consent_at ? String(r.consent_at) : null,
+    adminNotes: r.admin_notes ? String(r.admin_notes) : null,
+    reviewedAt: r.reviewed_at ? String(r.reviewed_at) : null,
+    studentId: r.student_id ? String(r.student_id) : null,
   }));
 }

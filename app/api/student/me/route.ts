@@ -26,6 +26,11 @@ export async function GET() {
       ext.group_uuid = data.group_uuid ?? null;
       ext.group_name = (data as any).groups?.group_name ?? null;
     }
+    // Enrolled package (column added by migration_registration_v3.sql — optional)
+    const pkg = await supabase.from("students").select("course_package").eq("id", student.id).maybeSingle();
+    if (!pkg.error && pkg.data) {
+      (student as unknown as Record<string, unknown>).course_package = pkg.data.course_package ?? null;
+    }
   }
 
   return NextResponse.json({ student });

@@ -45,12 +45,44 @@ export async function createStudentSessionToken(payload: StudentPayload): Promis
     .sign(secret);
 }
 
+/* ── Account status check ─────────────────────────────────────────────────
+   A signed session alone isn't enough: if an admin deactivates (or deletes) a
+   student, access to paid content must stop. Cached briefly per instance. */
+const activeCache = new Map<string, { active: boolean; at: number }>();
+const ACTIVE_TTL_MS = 60_000;
+
+async function isStudentActive(id: string): Promise<boolean> {
+  const hit = activeCache.get(id);
+  if (hit && Date.now() - hit.at < ACTIVE_TTL_MS) return hit.active;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return true; // DB not configured (local dev) — fall back to token-only
+
+  try {
+    const res = await fetch(`${url}/rest/v1/students?id=eq.${encodeURIComponent(id)}&select=is_active`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return hit?.active ?? true; // transient DB error: don't lock everyone out
+    const rows = (await res.json()) as { is_active: boolean | null }[];
+    const active = rows.length > 0 && rows[0].is_active !== false;
+    activeCache.set(id, { active, at: Date.now() });
+    if (activeCache.size > 10_000) activeCache.clear();
+    return active;
+  } catch {
+    return hit?.active ?? true;
+  }
+}
+
 export async function verifyStudentSessionToken(token: string): Promise<StudentPayload | null> {
   const secret = getSecret();
   if (!secret) return null;
   try {
     const { payload } = await jwtVerify(token, secret);
     if (payload.role !== "student") return null;
+    if (typeof payload.id !== "string" || !(await isStudentActive(payload.id))) return null;
     return {
       id: payload.id as string,
       email: payload.email as string,

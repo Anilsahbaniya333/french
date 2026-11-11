@@ -33,34 +33,44 @@ export const WHY_CHOOSE_US = [
 
 export const FAQ_ITEMS = [
   {
-    question: "What levels do you offer?",
+    question: "Can I start learning French with no previous experience?",
     answer:
-      "We offer four levels following the CEFR framework: A1 (Beginner), A2 (Elementary), B1 (Intermediate), and B2 (Upper-Intermediate). Each level has its own structured curriculum with modules, lessons, and practice materials.",
+      "Yes. All three of our packages start from zero — the A1 Foundation course begins with the French alphabet and pronunciation, and is designed for students with absolutely no prior French knowledge.",
   },
   {
-    question: "How are the classes conducted?",
+    question: "How long does it take to complete A1?",
     answer:
-      "Classes are conducted online via video call. You'll get access to our student portal where you can watch lesson recordings, complete assignments, and track your progress at your own pace.",
+      "The A1 French Foundation course runs for up to 3 months. This is an estimated timeline — individual progress depends on your participation, practice, and learning pace.",
   },
   {
-    question: "How do I know which level to join?",
+    question: "What is included in the CAD $1,000 full course?",
     answer:
-      "After you register, we'll schedule a short placement test to assess your current French level. Based on the results, we'll recommend the right starting level for you.",
+      "The Complete French Program covers the full A1, A2, B1, and B2 curriculum, plus TCF / TEF Canada exam preparation. It includes live classes with recordings, weekly mini exams with personalized feedback, speaking, listening, reading, and writing practice, and access to your personal student learning portal. The price is for the complete package, not a monthly fee.",
   },
   {
-    question: "What is the class schedule?",
+    question: "Are classes recorded?",
     answer:
-      "Each batch has a fixed weekly schedule. We offer morning and evening batches to accommodate different time zones and routines. Exact timings are shared on registration.",
+      "Yes. Live classes are recorded and made available in your student portal so you can review lessons, reinforce what you learned, and catch up if you miss a session.",
   },
   {
-    question: "Do you provide study materials?",
+    question: "Will I receive weekly feedback?",
     answer:
-      "Yes. All enrolled students get access to video lessons, PDF notes, vocabulary lists, and assignments directly through the student portal. No external books required.",
+      "Yes. Every week you complete a mini assessment, and your teacher provides personalized feedback highlighting your strengths, weaknesses, and the areas you should focus on next.",
   },
   {
-    question: "How can I enrol?",
+    question: "Can I access learning materials online?",
     answer:
-      "Click 'Join Now', fill in the registration form, and our team will reach out within 24 hours to confirm your batch and share next steps.",
+      "Yes. Registered students get access to a personal learning portal with class recordings, course materials and PDF notes, assignments, teacher feedback, and progress tracking.",
+  },
+  {
+    question: "Does the full program include TCF/TEF exam preparation?",
+    answer:
+      "Yes. The Complete French Program (A1 to B2) includes structured TCF Canada and TEF Canada exam preparation leading up to your exam. We do not guarantee a specific score, NCLC level, or immigration outcome — results depend on each student's effort and pace.",
+  },
+  {
+    question: "How can I register?",
+    answer:
+      "Click Register Now, choose your course and enter your details. Pay the course fee by Interac e-Transfer to frenchclass357@gmail.com and upload your payment confirmation screenshot. Our admissions team verifies your payment, confirms your enrollment, and emails you a secure link to set up your Student Portal login. Questions before paying? Email frenchclass357@gmail.com.",
   },
 ];
 
@@ -75,3 +85,9 @@ export const METHODOLOGY_PREVIEW = {
     "Tutor feedback",
   ],
 };
+
+/** Admissions phone / WhatsApp numbers (shown in the top bar, footer and contact blocks). */
+export const CONTACT_PHONES = [
+  { label: "Canada", display: "+1 437 559 4324", tel: "+14375594324", whatsapp: "https://wa.me/14375594324" },
+  { label: "Nepal", display: "+977 981-5713726", tel: "+9779815713726", whatsapp: "https://wa.me/9779815713726" },
+] as const;
